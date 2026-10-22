@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mission Banner Finder</title>
+<title>nikp3h's Banners</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -13,6 +13,7 @@
 
 /* Layout: a summary strip, filter bar, then a ledger of banner cards; each card compares your medal rows with the Bannergress picture. */
 :root{
+  --hh:56px;
   --bg:#0b100f; --surface:#131b19; --fg:#e4ece9; --muted:#8fa19b; --line:#24312d;
   --enl:#3ad19a; --res:#5aa2ff; --warn:#e3a53b; --none:#e07a7a; --chip:#1b2623; --hover:#18221f; --openbg:#101716; --sea:#070b0a; --land:#16201d; --border:#2a3833;
   --display:"Chakra Petch",system-ui,sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
@@ -32,18 +33,17 @@
 .regions{display:flex;flex-wrap:wrap;gap:6px}
 .facts button{font:inherit;color:var(--res);background:none;border:0;padding:0;cursor:pointer}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);line-height:1.5}
-.wrap{max-width:1180px;margin:0 auto;padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:24px}
-header{display:grid;gap:8px}
-.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,5vw,44px);line-height:1.05;margin:0;text-wrap:balance}
+.wrap{max-width:1180px;margin:0 auto;padding-block:calc(var(--hh) + env(safe-area-inset-top,0px) + 20px) 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:24px}
+.top{position:fixed;inset:0 0 auto;z-index:1000;background:var(--surface);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+.top-in{max-width:1180px;margin:0 auto;height:var(--hh);display:flex;align-items:center;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-family:var(--display);font-weight:700;font-size:22px;line-height:1;margin:0}
 h1 span{background:linear-gradient(90deg,var(--enl),var(--res));-webkit-background-clip:text;background-clip:text;color:transparent}
-.lede{color:var(--muted);max-width:68ch;margin:0}
+#map{isolation:isolate;scroll-margin-top:calc(var(--hh) + env(safe-area-inset-top,0px) + 12px)}
 .stats{display:flex;flex-wrap:wrap;gap:10px 28px;font-family:var(--mono);font-variant-numeric:tabular-nums}
 .stats div{display:grid}
 .stats b{font-family:var(--display);font-size:26px;font-weight:700}
 .stats small{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
-.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line)}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;position:sticky;top:calc(var(--hh) + env(safe-area-inset-top,0px));z-index:900;background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line)}
 .bar input{flex:1 1 220px;min-width:0;font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg)}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chip{font:500 13px var(--body);padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
@@ -88,13 +88,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 </head>
 <body>
 
+<header class="top"><div class="top-in"><h1>nikp3h's <span>Banners</span></h1></div></header>
 <div class="wrap">
-  <header>
-    <div class="eyebrow">Ingress mission medals · matched with Bannergress</div>
-    <h1>Mission <span>Banner</span> Finder</h1>
-    <p class="lede">Every banner from the mission medal list, newest first. The map shows where each banner starts; click a point to see it in the list. The titles were read from the Ingress app. Each banner was searched on Bannergress and checked by comparing its picture with your medals.</p>
-    <div class="stats" id="stats"></div>
-  </header>
+  <div class="stats" id="stats"></div>
   <section class="mapbox" aria-label="Map of banner start points">
     <div id="map"></div>
     <div class="regions" id="regions"></div>
