@@ -35,14 +35,17 @@
 body{background:var(--bg);color:var(--fg);font-family:var(--body);line-height:1.5}
 .wrap{max-width:1180px;margin:0 auto;padding-block:calc(var(--hh) + env(safe-area-inset-top,0px) + 20px) 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:24px}
 .top{position:fixed;inset:0 0 auto;z-index:1000;background:var(--surface);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
-.top-in{max-width:1180px;margin:0 auto;height:var(--hh);display:flex;align-items:center;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top-in{max-width:1180px;margin:0 auto;height:var(--hh);display:flex;align-items:center;gap:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h1{font-family:var(--display);font-weight:700;font-size:22px;line-height:1;margin:0}
 h1 span{background:linear-gradient(90deg,var(--enl),var(--res));-webkit-background-clip:text;background-clip:text;color:transparent}
 #map{isolation:isolate;scroll-margin-top:calc(var(--hh) + env(safe-area-inset-top,0px) + 12px)}
-.stats{display:flex;flex-wrap:wrap;gap:10px 28px;font-family:var(--mono);font-variant-numeric:tabular-nums}
-.stats div{display:grid}
-.stats b{font-family:var(--display);font-size:26px;font-weight:700}
-.stats small{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.stats{margin-left:auto;display:flex;gap:18px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stats div{display:flex;align-items:baseline;gap:6px}
+.stats b{font-family:var(--display);font-size:18px;font-weight:700}
+.stats small{color:var(--muted);font:12px var(--mono);text-transform:uppercase;letter-spacing:.06em}
+h1{white-space:nowrap}
+@media (max-width:480px){h1{font-size:18px}.stats{gap:10px}.stats b{font-size:15px}.stats small{font-size:10px;letter-spacing:.03em}}
+@media (max-width:380px){h1{font-size:16px}.top-in{gap:10px}.stats{gap:8px}.stats div{gap:4px}.stats b{font-size:14px}.stats small{font-size:9px;letter-spacing:.02em}}
 .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;position:sticky;top:calc(var(--hh) + env(safe-area-inset-top,0px));z-index:900;background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line)}
 .bar input{flex:1 1 220px;min-width:0;font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg)}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
@@ -88,9 +91,8 @@ h1 span{background:linear-gradient(90deg,var(--enl),var(--res));-webkit-backgrou
 </head>
 <body>
 
-<header class="top"><div class="top-in"><h1>nikp3h's <span>Banners</span></h1></div></header>
+<header class="top"><div class="top-in"><h1>nikp3h's <span>Banners</span></h1><div class="stats" id="stats"></div></div></header>
 <div class="wrap">
-  <div class="stats" id="stats"></div>
   <section class="mapbox" aria-label="Map of banner start points">
     <div id="map"></div>
     <div class="regions" id="regions"></div>
@@ -115,10 +117,8 @@ const LABEL={likely:'Probable',none:'Not found'};
 const dur=m=>m>=60?`${Math.floor(m/60)} h ${m%60} min`:`${m} min`;
 const ORDER={sequential:'In order',anyOrder:'Any order'};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const found=items.filter(i=>i.status!=='none');
 document.getElementById('stats').innerHTML=[
-  [items.length,'banners'],[items.reduce((a,i)=>a+i.count,0),'mission medals'],
-  [found.length,'found on Bannergress'],[items.length-found.length,'not found']
+  [items.length,'banners'],[items.reduce((a,i)=>a+i.count,0),'missions']
 ].map(([n,l])=>`<div><b>${n.toLocaleString()}</b><small>${l}</small></div>`).join('');
 let filter='all';
 function render(){
