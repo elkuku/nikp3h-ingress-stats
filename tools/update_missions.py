@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Update mission-banners/missions-data.js (and the screenshot tiles) for missions.html.
+"""Update mission-banners/missions-data.js (and the screenshot tiles) for index.html.
 
   python3 tools/update_missions.py                       # notes only, keep tiles, rows and done list
   python3 tools/update_missions.py --screenshot ingress-missions.png

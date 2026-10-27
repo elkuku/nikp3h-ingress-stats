@@ -5,8 +5,10 @@ Static pages about the Ingress agent nikp3h, published with GitHub Pages.
 ## Mission Banner Finder
 
 [`mission-banners/`](mission-banners/) lists every mission banner from the agent's mission medal
-list, newest first, with the start points on a map. Each banner links to its page on
-[Bannergress](https://bannergress.com) with its description, length, duration and order.
+list, newest first: the screenshot of the medals in Ingress, the start points on a map and a table
+with each banner's Bannergress page, description, length, duration and order, and whether it is on
+the agent's Bannergress done list. Selecting a banner in the screenshot, on the map or in the
+table shows it in the other two.
 
 - The titles were read from the mission medals in the Ingress app.
 - Each title was searched on Bannergress, and the match was checked by comparing the banner picture
@@ -15,10 +17,10 @@ list, newest first, with the start points on a map. Each banner links to its pag
 
 | File | Content |
 |------|---------|
-| `mission-banners/index.html` | The page |
+| `mission-banners/index.html` | The page: the mission medal screenshot beside a map of the start points and a table of every banner (medals, Bannergress match, done list, analysis) |
 | `mission-banners/data.js` | The banners: title, place, Bannergress id, description, length, duration, start point |
 | `mission-banners/img/` | The agent's medals for each banner |
-| `mission-banners/missions.html` | The mission medal screenshot beside a map of the start points and a table of every banner: medals, Bannergress match, done list, analysis |
+| `mission-banners/missions.html` | Redirects to the page (it was a page of its own) |
 | `mission-banners/missions-data.js` | Its data, written by `tools/update_missions.py`: the screenshot tiles, the position of each medal row, the Bannergress done list (from AgentTools), the notes |
 | `mission-banners/shot/` | The screenshot (`ingress-missions.png`, not in the repo) as half-size JPEG tiles |
 | `mission-banners/world.js` | Country outlines, shown when the map tiles can't load |
