@@ -3479,5 +3479,28 @@ window.BANNERS=[
   "count": 6,
   "img": "img/m154.jpg",
   "status": "none"
+ },
+ {
+  "i": 155,
+  "rows": "412",
+  "name": "LETRAS MANTA",
+  "count": 6,
+  "img": "img/m155.jpg",
+  "status": "match",
+  "score": null,
+  "id": "letras-manta-3565",
+  "title": "LETRAS MANTA",
+  "addr": "Manta, Ecuador",
+  "missions": 6,
+  "desc": "Conocida ciudad Puerto del Ecuador, visitada por nacionales y extranjeros, dentro de esta misión encontraras monumentos de vital importancia para la historia de creación de nuestra ciudad de Manta",
+  "km": 3.4,
+  "order": "sequential",
+  "dur": 537,
+  "disabled": 0,
+  "lat": -0.945266,
+  "lng": -80.722116,
+  "event": null,
+  "warning": null,
+  "offline": null
  }
 ];
