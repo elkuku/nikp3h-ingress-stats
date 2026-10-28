@@ -115,7 +115,7 @@ tbody tr.more td{position:static;background:var(--bg)}
 .regions{display:flex;flex-wrap:wrap;gap:6px}
 .regions .chip{font-size:12px;padding:4px 10px}
 .regions .flag{width:16px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px;object-fit:cover}
-.c-disabled{--st:var(--warn)} .c-likely{--st:var(--warn)} .c-missing{--st:var(--none)} .c-nobg{--st:var(--none)}
+.c-disabled{--st:var(--warn)} .c-likely{--st:var(--warn)} .c-missing{--st:var(--none)} .c-nobg{--st:var(--none)} .c-single{--st:var(--muted)}
 </style>
 </head>
 <body>
@@ -163,6 +163,7 @@ const CAT={
   likely:['Uncertain match','The medal list matched it only as "likely".'],
   missing:['Not marked done','Complete, active and matched, but not on the done list.'],
   nobg:['Not on Bannergress','No Bannergress banner was found for these medals.'],
+  single:['Single missions','Single missions, not a banner (single: true in data.js).'],
 };
 
 // Similar Bannergress titles for different medals: one of them may be a wrong match.
@@ -172,26 +173,28 @@ B.filter(b=>b.id).forEach(b=>(similar[norm(b.title)]??=[]).push(b.i));
 
 const items=B.map(b=>{
   const d=b.id?done.get(b.id):null, r=b.rows.split(',').map(x=>x.split('-').map(Number));
-  const cat=d?'done':!b.id?'nobg':b.count<b.missions?'incomplete':b.disabled&&b.disabled>=b.missions?'disabled':b.status==='likely'?'likely':'missing';
+  const cat=b.single?'single':d?'done':!b.id?'nobg':b.count<b.missions?'incomplete':b.disabled&&b.disabled>=b.missions?'disabled':b.status==='likely'?'likely':'missing';
   const notes=[];
   if(d&&b.count<b.missions) notes.push(`Fewer medals (${b.count}) than missions (${b.missions}), but on the done list.`);
   if(b.disabled&&b.disabled<b.missions) notes.push(`${b.disabled} of ${b.missions} missions disabled.`);
   if(b.offline) notes.push(`Offline: ${b.offline}`);
   if(b.warning) notes.push(`Warning: ${b.warning}`);
-  const sim=(similar[norm(b.title)]||[]).filter(i=>i!==b.i);
+  // b.checked: the match was checked by hand (picture, mission titles), so no warning
+  const sim=b.checked?[]:(similar[norm(b.title)]||[]).filter(i=>i!==b.i);
   if(b.id&&sim.length) notes.push(`Similar Bannergress title as ${sim.map(i=>'#'+(i+1)).join(', ')}: check the match.`);
   const note=M.notes[b.id||'medal:'+b.name]; if(note) notes.push(note);
   return {key:'b'+b.i,i:b.i,name:b.name,img:b.img,rows:r,count:b.count,status:b.status,score:b.score,id:b.id,title:b.title?.trim(),addr:b.addr,
     missions:b.missions,disabled:b.disabled||0,order:b.order,km:b.km,dur:b.dur,lat:b.lat,lng:b.lng,event:b.event,desc:b.desc,
     pos:d?.pos??null,doneAt:d?.doneAt??null,cat,notes};
 });
-M.done.banners.filter(d=>!B.some(b=>b.id===d.id)).forEach(d=>items.push({key:'d'+d.pos,i:null,name:null,img:null,rows:null,count:null,status:null,score:null,
+// Done list only: numbered D1, D2, … in done list order (changes when the done list does)
+M.done.banners.filter(d=>!B.some(b=>b.id===d.id)).forEach((d,n)=>items.push({key:'d'+d.pos,i:null,no:'D'+(n+1),name:null,img:null,rows:null,count:null,status:null,score:null,
   id:d.id,title:d.title,addr:null,missions:d.missions,disabled:null,order:null,km:null,dur:null,lat:d.lat,lng:d.lng,event:null,desc:null,
-  pos:d.pos,doneAt:d.doneAt,cat:'doneonly',notes:M.notes[d.id]?[M.notes[d.id]]:[]}));
+  pos:d.pos,doneAt:d.doneAt,picture:d.picture,cat:'doneonly',notes:M.notes[d.id]?[M.notes[d.id]]:[]}));
 
 const byKey=new Map(items.map(it=>[it.key,it]));
 const counts={};items.forEach(it=>counts[it.cat]=(counts[it.cat]||0)+1);
-document.getElementById('stats').innerHTML=[[B.length,'banners'],[B.reduce((a,b)=>a+b.count,0),'missions']]
+document.getElementById('stats').innerHTML=[[B.filter(b=>!b.single).length,'banners'],[B.reduce((a,b)=>a+b.count,0),'missions']]
   .map(([n,l])=>`<div><b>${n.toLocaleString()}</b><small>${l}</small></div>`).join('');
 
 // Screenshot with a box per banner
@@ -205,10 +208,13 @@ shotIn.firstElementChild.alt='Screenshot of the mission medals in Ingress';
 
 // Table (the numbers shown start at 1; it.i starts at 0)
 const COLS=[
-  ['i','#','n',it=>it.i==null?'<span class="muted">–</span>':`<span class="num">${it.i+1}</span>`],
-  [null,'Medals','',it=>it.img?`<img class="medals" src="${it.img}" alt="" loading="lazy">`:'<span class="muted">no medal</span>'],
+  ['i','#','n',it=>`<span class="num">${it.no??it.i+1}</span>`],
+  // Without a medal (done list only), the Bannergress picture
+  [null,'Medals','',it=>it.img?`<img class="medals" src="${it.img}" alt="" loading="lazy">`
+    :it.picture?`<img class="medals" src="https://api.bannergress.com${encodeURI(it.picture)}" alt="" loading="lazy" title="Bannergress picture">`:'<span class="muted">no medal</span>'],
   ['cat','Analysis','',it=>`<span class="pill">${CAT[it.cat][0]}</span>`],
-  ['name','Ingress medal','',it=>it.name?`<div class="t">${esc(it.name)}</div>`:'<span class="muted">–</span>'],
+  // Without a medal (done list only), the Bannergress title, greyed out
+  ['name','Ingress medal','',it=>it.name?`<div class="t">${esc(it.name)}</div>`:it.title?`<div class="t muted" title="Bannergress title">${esc(it.title)}</div>`:'<span class="muted">–</span>'],
   // The place, with a link to the start point on Google Maps under it
   ['addr','Place','',it=>`<div class="place">${esc(it.addr??'')}${it.lat!=null?`<span class="map-link"><a href="https://www.google.com/maps/search/?api=1&query=${it.lat},${it.lng}" target="_blank" rel="noopener" title="${it.lat.toFixed(5)}, ${it.lng.toFixed(5)}">Map ↗</a></span>`:''}</div>`],
   ['event','Event','',it=>it.event?esc(it.event.filter(Boolean).filter((v,k,a)=>a.indexOf(v)===k).join(' – ')):''],
@@ -237,7 +243,7 @@ const val=(it,k)=>k==='cat'?CATORDER.indexOf(it.cat):k==='i'?(it.i??1e6+it.pos):
 
 function render(){
   const q=document.getElementById('q').value.trim().toLowerCase();
-  const shown=items.filter(it=>(filter==='all'||it.cat===filter)&&(!q||[it.name,it.title,it.id,it.addr,it.desc,...it.notes].join(' ').toLowerCase().includes(q)))
+  const shown=items.filter(it=>(filter==='all'||it.cat===filter)&&(!q||[it.no,it.name,it.title,it.id,it.addr,it.desc,...it.notes].join(' ').toLowerCase().includes(q)))
     .sort((a,b)=>{const x=val(a,sort.k),y=val(b,sort.k);
       if(x==null||x==='') return 1; if(y==null||y==='') return -1;
       return (typeof x==='string'?x.localeCompare(y):x-y)*sort.dir||(a.i??999)-(b.i??999)});
@@ -277,7 +283,7 @@ function select(key,from){
 }
 // Map of the start points, colored like the analysis
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const DOT={done:'--enl',doneonly:'--res',incomplete:'--muted',disabled:'--warn',likely:'--warn',missing:'--none',nobg:'--none'};
+const DOT={done:'--enl',doneonly:'--res',incomplete:'--muted',disabled:'--warn',likely:'--warn',missing:'--none',nobg:'--none',single:'--muted'};
 const map=L.map('map',{preferCanvas:true,worldCopyJump:true,maxZoom:16,minZoom:2,zoomSnap:.5});
 map.attributionControl.setPrefix(false);
 map.attributionControl.addAttribution('Banners: Bannergress');
@@ -304,7 +310,7 @@ const placed=items.filter(it=>it.lat!=null);
 for(const it of placed){
   const c=css(DOT[it.cat]);
   markers.set(it.key,L.circleMarker([it.lat,it.lng],{radius:Math.min(11,4+Math.sqrt(it.missions||6)/1.6),weight:1.5,color:c,fillColor:c,fillOpacity:.45})
-    .bindPopup(`<b>${it.i!=null?'#'+(it.i+1)+' ':''}${esc(it.title||it.name)}</b><br>${it.missions} missions${it.addr?' · '+esc(it.addr):''}<br>${CAT[it.cat][0]}<br><button type="button" data-k="${it.key}">Show in the table</button>`));
+    .bindPopup(`<b>${it.no??'#'+(it.i+1)} ${esc(it.title||it.name)}</b><br>${it.missions} missions${it.addr?' · '+esc(it.addr):''}<br>${CAT[it.cat][0]}<br><button type="button" data-k="${it.key}">Show in the table</button>`));
 }
 const all=L.latLngBounds(placed.map(it=>[it.lat,it.lng]));
 map.fitBounds(all,{padding:[20,20]});

@@ -11,7 +11,7 @@ top, the script stops and says how many rows are new (data.js has to be updated 
 
 --done takes the Bannergress done list as JSON: a list, or {"member": [...]}, of objects with
 bannerId (or id), title, missions, startLatitude/startLongitude (or lat/lng), doneAt and,
-optionally, position (else the order of the list).
+optionally, picture (/bnrs/pictures/…) and position (else the order of the list).
 
 The notes come from tools/notes.json. Needs Pillow.
 """
@@ -149,6 +149,7 @@ def read_done(path):
             'lat': d.get('startLatitude', d.get('lat')),
             'lng': d.get('startLongitude', d.get('lng')),
             'doneAt': d.get('doneAt'),
+            'picture': d.get('picture'),
         })
     return sorted(out, key=lambda d: d['pos'])
 
