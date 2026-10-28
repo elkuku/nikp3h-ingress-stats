@@ -2946,8 +2946,8 @@ window.MISSIONS={
  "notes": {
   "green-sunday-a92f": "The done list has \"Second Sunday Green\" (second-sunday-green-c8ec) near Wiesbaden: this match to Cologne looks wrong.",
   "medal:Second Sunday": "Probably second-sunday-209a (\"Second Sunday\", Mainz) on the done list.",
-  "second-sunday-209a": "Probably medal #17 \"Second Sunday\", which has no Bannergress match in the medal list.",
-  "second-sunday-green-c8ec": "Probably medal #99 \"Second Sunday Green\": the medal list matched it to green-sunday-a92f (\"Green Sunday\", Cologne, offline), which looks wrong.",
-  "rotenburg-f42e": "No medal with that name; it starts about 100 m from \"Ingress down Rotenburg\" (#56). Maybe a medal with another name, or marked done by mistake."
+  "second-sunday-209a": "Probably medal #18 \"Second Sunday\", which has no Bannergress match in the medal list.",
+  "second-sunday-green-c8ec": "Probably medal #100 \"Second Sunday Green\": the medal list matched it to green-sunday-a92f (\"Green Sunday\", Cologne, offline), which looks wrong.",
+  "rotenburg-f42e": "No medal with that name; it starts about 100 m from \"Ingress down Rotenburg\" (#57). Maybe a medal with another name, or marked done by mistake."
  }
 };
