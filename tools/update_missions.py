@@ -225,14 +225,15 @@ def write_preview(banners):
     desc = (f'{count} Ingress mission banners and {missions:,} missions of agent nikp3h: the medals, '
             'a map of the start points and the matching Bannergress banners.')
     version = hashlib.sha1(PREVIEW.read_bytes()).hexdigest()[:8]
-    page = SITE / 'index.html'
-    html = page.read_text(encoding='utf-8')
-    new = re.sub(r'(<meta (?:name|property)="(?:description|og:description|twitter:description)" content=")[^"]*',
-                 lambda m: m.group(1) + desc, html)
-    new = re.sub(r'(<meta (?:property|name)="(?:og:image|twitter:image)" content=")[^"]*',
-                 lambda m: m.group(1) + f'{PAGE}{PREVIEW.name}?v={version}', new)
-    if new != html:
-        page.write_text(new, encoding='utf-8')
+    # The banners page and the site's home page (which forwards to it) have the same preview
+    for page in (SITE / 'index.html', ROOT / 'index.html'):
+        html = page.read_text(encoding='utf-8')
+        new = re.sub(r'(<meta (?:name|property)="(?:description|og:description|twitter:description)" content=")[^"]*',
+                     lambda m: m.group(1) + desc, html)
+        new = re.sub(r'(<meta (?:property|name)="(?:og:image|twitter:image)" content=")[^"]*',
+                     lambda m: m.group(1) + f'{PAGE}{PREVIEW.name}?v={version}', new)
+        if new != html:
+            page.write_text(new, encoding='utf-8')
     print(f'{PREVIEW.relative_to(ROOT)}: {count} banners, {missions:,} missions')
 
 
