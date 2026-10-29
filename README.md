@@ -19,6 +19,7 @@ table shows it in the other two.
 | File | Content |
 |------|---------|
 | `mission-banners/index.html` | The page: the mission medal screenshot beside a map of the start points and a table of every banner (medals, Bannergress match, done list, analysis) |
+| `mission-banners/style.css`, `mission-banners/app.js` | Its styles and script: the screenshot, map, table, filters and selection |
 | `mission-banners/data.js` | The banners: title, place, Bannergress id, description, length, duration, start point |
 | `mission-banners/img/` | The agent's medals for each banner |
 | `mission-banners/favicon.ico`, `apple-touch-icon.png` | The page icon, made from the onyx SpecOps medal |
@@ -28,7 +29,7 @@ table shows it in the other two.
 | `mission-banners/missions-data.js` | Its data, written by `tools/update_missions.py`: the screenshot tiles, the position of each medal row, the Bannergress done list (from AgentTools), the notes |
 | `mission-banners/shot/` | The screenshot (`ingress-missions.png`, not in the repo) as half-size JPEG tiles |
 | `mission-banners/world.js` | Country outlines, shown when the map tiles can't load |
-| `mission-banners/vendor/` | [Leaflet](https://leafletjs.com) 1.9.4 and [TopoJSON](https://github.com/topojson/topojson) 3.0.2 |
+| `mission-banners/vendor/` | [Leaflet](https://leafletjs.com) 1.9.4 (script and styles) and [TopoJSON](https://github.com/topojson/topojson) 3.0.2 |
 
 Map tiles: Esri World Dark Gray Canvas. Country outlines: [Natural Earth](https://www.naturalearthdata.com)
 via [world-atlas](https://github.com/topojson/world-atlas). Banner data: Bannergress.
