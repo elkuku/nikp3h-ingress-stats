@@ -25,9 +25,11 @@ a{color:var(--res)}
 .top-in{height:var(--hh);display:flex;align-items:center;gap:16px;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
 h1{font-family:var(--display);font-weight:700;font-size:22px;line-height:1;margin:0;white-space:nowrap}
 h1 span{background:linear-gradient(90deg,var(--enl),var(--res));-webkit-background-clip:text;background-clip:text;color:transparent}
-.stats{margin-left:auto;display:flex;gap:18px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stats{margin-left:auto;display:flex;align-items:center;gap:18px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .stats div{display:flex;align-items:baseline;gap:6px}
 .stats b{font-family:var(--display);font-size:18px}
+.stats .medal{width:36px;height:36px;margin-left:-8px}
+.stats .medal-count{margin-left:-14px;font-size:15px;color:var(--warn)}
 .stats small{color:var(--muted);font:12px var(--mono);text-transform:uppercase;letter-spacing:.06em}
 @media (max-width:560px){:root{--hh:84px}.top-in{flex-wrap:wrap;height:auto;padding-block:10px;row-gap:6px}.stats{margin-left:0;width:100%;gap:14px}.stats b{font-size:15px}.stats small{font-size:10px;letter-spacing:.03em}}
 
@@ -156,6 +158,11 @@ tbody tr.more td{position:static;background:var(--bg)}
 <script src="world.js"></script>
 <script>
 const M=window.MISSIONS, B=window.BANNERS, done=new Map(M.done.banners.map(d=>[d.id,d]));
+// The banner numbers shown: the oldest banner (last rows of the screenshot) is #1; single missions get none.
+// data.js counts i from 0, newest first. ORDER sorts by number, with single missions between their neighbours.
+const NO=new Map(), ORDER=new Map();
+for(let i=B.length-1,n=0;i>=0;i--){if(!B[i].single)NO.set(i,++n);ORDER.set(i,B[i].single?n+.5:n)}
+const no=i=>NO.get(i);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const dur=m=>m>=60?`${Math.floor(m/60)} h ${m%60} min`:`${m} min`;
 const CAT={
@@ -183,7 +190,7 @@ const items=B.map(b=>{
   if(b.warning) notes.push(`Warning: ${b.warning}`);
   // b.checked: the match was checked by hand (picture, mission titles), so no warning
   const sim=b.checked?[]:(similar[norm(b.title)]||[]).filter(i=>i!==b.i);
-  if(b.id&&sim.length) notes.push(`Similar Bannergress title as ${sim.map(i=>'#'+(i+1)).join(', ')}: check the match.`);
+  if(b.id&&sim.length) notes.push(`Similar Bannergress title as ${sim.map(i=>'#'+no(i)).join(', ')}: check the match.`);
   const note=M.notes[b.id||'medal:'+b.name]; if(note) notes.push(note);
   return {key:'b'+b.i,i:b.i,name:b.name,img:b.img,rows:r,count:b.count,status:b.status,score:b.score,id:b.id,title:b.title?.trim(),addr:b.addr,
     missions:b.missions,disabled:b.disabled||0,order:b.order,km:b.km,dur:b.dur,lat:b.lat,lng:b.lng,event:b.event,desc:b.desc,
@@ -196,24 +203,30 @@ M.done.banners.filter(d=>!B.some(b=>b.id===d.id)).forEach((d,n)=>items.push({key
 
 const byKey=new Map(items.map(it=>[it.key,it]));
 const counts={};items.forEach(it=>counts[it.cat]=(counts[it.cat]||0)+1);
-document.getElementById('stats').innerHTML=[[B.filter(b=>!b.single).length,'banners'],[B.reduce((a,b)=>a+b.count,0),'missions']]
-  .map(([n,l])=>`<div><b>${n.toLocaleString()}</b><small>${l}</small></div>`).join('');
+// The Ingress SpecOps medal (unique missions completed) the mission count has reached
+const SPECOPS=[[500,'black','Onyx'],[200,'platinum','Platinum'],[100,'gold','Gold'],[25,'silver','Silver'],[5,'bronze','Bronze']];
+// and, as in AgentTools, "X n" when the onyx value was reached n times (from 2)
+const missionCount=B.reduce((a,b)=>a+b.count,0), specops=SPECOPS.find(([n])=>missionCount>=n);
+const onyx=Math.floor(missionCount/SPECOPS[0][0]);
+document.getElementById('stats').innerHTML=[[B.filter(b=>!b.single).length,'banners'],[missionCount,'missions']]
+  .map(([n,l])=>`<div><b>${n.toLocaleString()}</b><small>${l}</small></div>`).join('')
+  +(specops?`<img class="medal" src="medals/specops-${specops[1]}.webp" width="150" height="150" alt="SpecOps ${specops[2]}" title="SpecOps ${specops[2]}: ${specops[0]}+ missions${onyx>1?` (${onyx} × ${SPECOPS[0][0]})`:''}">${onyx>1?`<b class="medal-count">X ${onyx}</b>`:''}`:'');
 
 // Screenshot with a box per banner
 const shotIn=document.getElementById('shotIn'), H=M.shot.h;
 shotIn.innerHTML=M.shot.tiles.map(t=>`<img src="${t.src}" width="540" height="${t.h}" alt="" loading="lazy">`).join('')+
   items.filter(it=>it.rows).flatMap(it=>it.rows.map(r=>{
     const top=M.rows[r[0]][0]-5, bottom=M.rows[r[r.length-1]][1]+5;
-    return `<button type="button" class="mark c-${it.cat}" data-k="${it.key}" style="top:${top/H*100}%;height:${(bottom-top)/H*100}%" title="#${it.i+1} ${esc(it.title||it.name)} · ${CAT[it.cat][0]}"><span>#${it.i+1}</span></button>`;
+    return `<button type="button" class="mark c-${it.cat}" data-k="${it.key}" style="top:${top/H*100}%;height:${(bottom-top)/H*100}%" title="${no(it.i)?'#'+no(it.i)+' ':''}${esc(it.title||it.name)} · ${CAT[it.cat][0]}">${no(it.i)?`<span>#${no(it.i)}</span>`:''}</button>`;
   })).join('');
 shotIn.firstElementChild.alt='Screenshot of the mission medals in Ingress';
 
 // The number of missions: orange when medals are missing or missions are disabled; the tooltip says how many
 const missions=it=>it.count!=null&&it.count<it.missions?`<span class="warn">${it.count} / ${it.missions}</span>`
   :it.disabled?`<span class="warn" title="${it.disabled} of ${it.missions} disabled">${it.missions}</span>`:it.missions;
-// Table (the numbers shown start at 1; it.i starts at 0)
+// Table (the numbers shown count down from the newest banner, see no())
 const COLS=[
-  ['i','#','n',it=>`<span class="num">${it.no??it.i+1}</span>`],
+  ['i','#','n',it=>`<span class="num">${it.no??no(it.i)??''}</span>`],
   ['missions','Missions','n',it=>it.missions!=null?missions(it):''],
   // Without a medal (done list only), the Bannergress picture. The medal pictures are 330 px wide and 55 px per row;
   // their size is set so that the table keeps its height while they load (scrolling to a row lands right).
@@ -241,9 +254,10 @@ const more=it=>`<tr class="more c-${it.cat}" id="m-${it.key}"${expanded.has(it.k
   (it.desc?`<div><h3>Description</h3><div class="desc">${esc(it.desc)}</div></div>`:'')+'</div></td></tr>';
 const head=document.getElementById('head');
 head.innerHTML=COLS.map(([k,l,c])=>`<th class="${c}"${k?` data-k="${k}" aria-sort="none"`:''}>${k?`<button type="button">${l}</button>`:l}</th>`).join('');
-let sort={k:'i',dir:1}, filter='all', sel=null;
+let sort={k:'i',dir:-1}, filter='all', sel=null;
 const CATORDER=Object.keys(CAT);
-const val=(it,k)=>k==='cat'?CATORDER.indexOf(it.cat):k==='i'?(it.i??1e6+it.pos):it[k];
+// By number: done list only rows (no number) after the banners, in done list order
+const val=(it,k)=>k==='cat'?CATORDER.indexOf(it.cat):k==='i'?(it.i!=null?ORDER.get(it.i):-it.pos):it[k];
 
 function render(){
   const q=document.getElementById('q').value.trim().toLowerCase();
@@ -320,7 +334,7 @@ const placed=items.filter(it=>it.lat!=null);
 for(const it of placed){
   const c=css(DOT[it.cat]);
   markers.set(it.key,L.circleMarker([it.lat,it.lng],{radius:Math.min(11,4+Math.sqrt(it.missions||6)/1.6),weight:1.5,color:c,fillColor:c,fillOpacity:.45})
-    .bindPopup(`<b>${it.no??'#'+(it.i+1)} ${esc(it.title||it.name)}</b><br>${it.missions} missions${it.addr?' · '+esc(it.addr):''}<br>${CAT[it.cat][0]}<br><button type="button" data-k="${it.key}">Show in the table</button>`));
+    .bindPopup(`<b>${it.no?it.no+' ':no(it.i)?'#'+no(it.i)+' ':''}${esc(it.title||it.name)}</b><br>${it.missions} missions${it.addr?' · '+esc(it.addr):''}<br>${CAT[it.cat][0]}<br><button type="button" data-k="${it.key}">Show in the table</button>`));
 }
 const all=L.latLngBounds(placed.map(it=>[it.lat,it.lng]));
 map.fitBounds(all,{padding:[20,20]});

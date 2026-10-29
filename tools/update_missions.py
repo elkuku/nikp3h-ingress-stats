@@ -45,6 +45,13 @@ def load_banners():
     return json.loads(src[src.index('['):src.rindex(']') + 1])
 
 
+def number(banners, banner):
+    """The number the page shows: the oldest banner is #1, single missions have none ('-')."""
+    if banner.get('single'):
+        return '-'
+    return sum(1 for b in banners[banner['i']:] if not b.get('single'))
+
+
 def row_ranges(banner):
     """"13-14,211" -> [13, 14, 211]"""
     rows = []
@@ -177,10 +184,10 @@ def main():
                      f'(and move the rows of the others) first. Nothing written.')
         if offset < 0 or len(wrong) > 3:
             for b, why in wrong[:20]:
-                print(f'  #{b["i"]} {b["name"]} (rows {b["rows"]}): {why}', file=sys.stderr)
+                print(f'  #{number(banners, b)} {b["name"]} (rows {b["rows"]}): {why}', file=sys.stderr)
             sys.exit('The screenshot does not match data.js. Nothing written.')
         for b, why in wrong:
-            print(f'  check #{b["i"]} {b["name"]} (rows {b["rows"]}): {why}')
+            print(f'  check #{number(banners, b)} {b["name"]} (rows {b["rows"]}): {why}')
         last = max(r for b in banners for r in row_ranges(b))
         if len(rows) - 1 > last:
             print(f'  note: the screenshot has {len(rows) - 1 - last} medal rows after the last banner of data.js'
