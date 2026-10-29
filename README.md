@@ -21,6 +21,7 @@ table shows it in the other two.
 | `mission-banners/index.html` | The page: the mission medal screenshot beside a map of the start points and a table of every banner (medals, Bannergress match, done list, analysis) |
 | `mission-banners/data.js` | The banners: title, place, Bannergress id, description, length, duration, start point |
 | `mission-banners/img/` | The agent's medals for each banner |
+| `mission-banners/favicon.ico`, `apple-touch-icon.png` | The page icon, made from the onyx SpecOps medal |
 | `mission-banners/medals/` | The Ingress SpecOps medals (from AgentTools); the header shows the one the mission count has reached |
 | `mission-banners/missions.html` | Redirects to the page (it was a page of its own) |
 | `mission-banners/missions-data.js` | Its data, written by `tools/update_missions.py`: the screenshot tiles, the position of each medal row, the Bannergress done list (from AgentTools), the notes |
