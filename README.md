@@ -1,11 +1,9 @@
 # nikp3h Ingress Stats
 
 Static pages about the Ingress agent nikp3h, published with GitHub Pages:
-<https://elkuku.github.io/nikp3h-ingress-stats/>
+<https://elkuku.github.io/nikp3h-ingress-stats/mission-banners/>
 
 ## Mission Banner Finder
-
-Live: <https://elkuku.github.io/nikp3h-ingress-stats/mission-banners/>
 
 [`mission-banners/`](mission-banners/) lists every mission banner from the agent's mission medal
 list, newest first: the screenshot of the medals in Ingress, the start points on a map and a table
