@@ -258,7 +258,8 @@ head.addEventListener('click',e=>{const th=e.target.closest('th[data-k]');if(!th
   sort=sort.k===th.dataset.k?{k:sort.k,dir:-sort.dir}:{k:th.dataset.k,dir:1};render()});
 
 const chips=document.getElementById('chips');
-chips.innerHTML=[['all','All',items.length],...CATORDER.map(c=>[c,CAT[c][0],counts[c]||0])]
+// Filters without banners are hidden
+chips.innerHTML=[['all','All',items.length],...CATORDER.filter(c=>counts[c]).map(c=>[c,CAT[c][0],counts[c]])]
   .map(([c,l,n])=>`<button class="chip c-${c}" type="button" data-f="${c}" aria-pressed="${c==='all'}"${CAT[c]?` title="${esc(CAT[c][1])}"`:''}>${l}<i>${n}</i></button>`).join('');
 chips.addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;filter=b.dataset.f;
   chips.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed',c===b));render()});
