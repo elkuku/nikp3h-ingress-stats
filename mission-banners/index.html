@@ -99,7 +99,7 @@ tbody tr.more td{position:static;background:var(--bg)}
 .pill{display:inline-block;font:500 10.5px var(--mono);text-transform:uppercase;letter-spacing:.02em;padding:2px 7px;border-radius:4px;white-space:nowrap;color:var(--st);border:1px solid var(--st)}
 .warn{color:var(--warn)}
 .muted{color:var(--muted)}
-.c-done{--st:var(--enl)} .c-doneonly{--st:var(--res)} .c-incomplete{--st:var(--muted)}
+.c-done{--st:var(--enl)} .c-doneonly{--st:var(--res)}
 /* Map */
 .mapbox{display:grid;gap:8px}
 #map{height:clamp(260px,38vh,400px);border:1px solid var(--line);border-radius:8px;background:var(--sea);isolation:isolate}
@@ -158,10 +158,9 @@ const dur=m=>m>=60?`${Math.floor(m/60)} h ${m%60} min`:`${m} min`;
 const CAT={
   done:['Done','On the medal list and the Bannergress done list.'],
   doneonly:['Done list only','On the Bannergress done list, but no medal was matched to it.'],
-  incomplete:['Not complete','Fewer medals than missions: probably not finished.'],
   disabled:['All disabled','All missions are disabled on Bannergress; never marked done there.'],
   likely:['Uncertain match','The medal list matched it only as "likely".'],
-  missing:['Not marked done','Complete, active and matched, but not on the done list.'],
+  missing:['Not marked done','Matched and not all missions disabled, but not on the done list.'],
   nobg:['Not on Bannergress','No Bannergress banner was found for these medals.'],
   single:['Single missions','Single missions, not a banner (single: true in data.js).'],
 };
@@ -173,9 +172,9 @@ B.filter(b=>b.id).forEach(b=>(similar[norm(b.title)]??=[]).push(b.i));
 
 const items=B.map(b=>{
   const d=b.id?done.get(b.id):null, r=b.rows.split(',').map(x=>x.split('-').map(Number));
-  const cat=b.single?'single':d?'done':!b.id?'nobg':b.count<b.missions?'incomplete':b.disabled&&b.disabled>=b.missions?'disabled':b.status==='likely'?'likely':'missing';
+  const cat=b.single?'single':d?'done':!b.id?'nobg':b.disabled&&b.disabled>=b.missions?'disabled':b.status==='likely'?'likely':'missing';
   const notes=[];
-  if(d&&b.count<b.missions) notes.push(`Fewer medals (${b.count}) than missions (${b.missions}), but on the done list.`);
+  if(b.count<b.missions) notes.push(`Fewer medals (${b.count}) than missions (${b.missions})${d?', but on the done list':''}.`);
   if(b.disabled&&b.disabled<b.missions) notes.push(`${b.disabled} of ${b.missions} missions disabled.`);
   if(b.offline) notes.push(`Offline: ${b.offline}`);
   if(b.warning) notes.push(`Warning: ${b.warning}`);
@@ -206,9 +205,13 @@ shotIn.innerHTML=M.shot.tiles.map(t=>`<img src="${t.src}" width="540" height="${
   })).join('');
 shotIn.firstElementChild.alt='Screenshot of the mission medals in Ingress';
 
+// The number of missions: orange when medals are missing or missions are disabled; the tooltip says how many
+const missions=it=>it.count!=null&&it.count<it.missions?`<span class="warn">${it.count} / ${it.missions}</span>`
+  :it.disabled?`<span class="warn" title="${it.disabled} of ${it.missions} disabled">${it.missions}</span>`:it.missions;
 // Table (the numbers shown start at 1; it.i starts at 0)
 const COLS=[
   ['i','#','n',it=>`<span class="num">${it.no??it.i+1}</span>`],
+  ['missions','Missions','n',it=>it.missions!=null?missions(it):''],
   // Without a medal (done list only), the Bannergress picture
   [null,'Medals','',it=>it.img?`<img class="medals" src="${it.img}" alt="" loading="lazy">`
     :it.picture?`<img class="medals" src="https://api.bannergress.com${encodeURI(it.picture)}" alt="" loading="lazy" title="Bannergress picture">`:'<span class="muted">no medal</span>'],
@@ -223,9 +226,6 @@ const COLS=[
 // The details row: the Bannergress facts, the analysis notes and the Bannergress description
 const FACTS=[
   ['Bannergress',it=>it.id?`<a href="https://bannergress.com/banner/${encodeURIComponent(it.id)}" target="_blank" rel="noopener" title="${esc(it.title)}">Bannergress ↗</a>`:'<span class="muted">not found</span>'],
-  // Orange when missions are disabled; the tooltip says how many
-  ['Missions',it=>it.missions==null?'':it.count!=null&&it.count<it.missions?`<span class="warn">${it.count} / ${it.missions}</span>`
-    :it.disabled?`<span class="warn" title="${it.disabled} of ${it.missions} disabled">${it.missions}</span>`:it.missions],
   ['Length',it=>it.km!=null?it.km+' km':''],
   ['Duration',it=>it.dur?dur(it.dur):''],
 ];
@@ -283,7 +283,7 @@ function select(key,from){
 }
 // Map of the start points, colored like the analysis
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const DOT={done:'--enl',doneonly:'--res',incomplete:'--muted',disabled:'--warn',likely:'--warn',missing:'--none',nobg:'--none',single:'--muted'};
+const DOT={done:'--enl',doneonly:'--res',disabled:'--warn',likely:'--warn',missing:'--none',nobg:'--none',single:'--muted'};
 const map=L.map('map',{preferCanvas:true,worldCopyJump:true,maxZoom:16,minZoom:2,zoomSnap:.5});
 map.attributionControl.setPrefix(false);
 map.attributionControl.addAttribution('Banners: Bannergress');
