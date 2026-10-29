@@ -13,15 +13,18 @@ top, the script stops and says how many rows are new (data.js has to be updated 
 bannerId (or id), title, missions, startLatitude/startLongitude (or lat/lng), doneAt and,
 optionally, picture (/bnrs/pictures/…) and position (else the order of the list).
 
-The notes come from tools/notes.json. Needs Pillow.
+The notes come from tools/notes.json. Every run also draws the link preview image (mission-banners/preview.png)
+and writes the description and image link of index.html's preview tags (Telegram, WhatsApp, …). Needs Pillow.
 """
 import argparse
+import hashlib
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from PIL import Image, ImageChops, ImageStat
+from PIL import Image, ImageChops, ImageDraw, ImageFont, ImageStat
 
 Image.MAX_IMAGE_PIXELS = None
 
@@ -32,6 +35,11 @@ SHOT = SITE / 'shot'
 NOTES = ROOT / 'tools' / 'notes.json'
 SCALE = 0.5
 TILE = 1500  # tile height after scaling
+PAGE = 'https://elkuku.github.io/nikp3h-ingress-stats/mission-banners/'
+PREVIEW = SITE / 'preview.jpg'
+FONTS = Path('/usr/share/fonts/noto')
+# The SpecOps medal (unique missions completed), as in index.html
+SPECOPS = [(500, 'black'), (200, 'platinum'), (100, 'gold'), (25, 'silver'), (5, 'bronze')]
 
 
 def read_js(path, prefix):
@@ -161,6 +169,73 @@ def read_done(path):
     return sorted(out, key=lambda d: d['pos'])
 
 
+def font(name, size):
+    try:
+        return ImageFont.truetype(str(FONTS / name), size)
+    except OSError:
+        return ImageFont.load_default(size)
+
+
+def write_preview(banners):
+    """The link preview: a 1200×630 image and the description in index.html's og/twitter tags."""
+    count = sum(1 for b in banners if not b.get('single'))
+    missions = sum(b['count'] for b in banners)
+    W, H, bg = 1200, 630, (11, 16, 15)
+    im = Image.new('RGB', (W, H), bg)
+    # Right: the newest banners' medals in two columns, faded into the background on the left
+    x0, cw, gap = 790, 200, 8
+    for c in range(2):
+        y = -20 - c * 60
+        for b in [b for b in banners if not b.get('single')][c::2]:
+            pic = Image.open(SITE / b['img']).convert('RGB')
+            pic = pic.resize((cw, round(pic.height * cw / pic.width)), Image.LANCZOS)
+            im.paste(pic, (x0 + c * (cw + gap), y))
+            y += pic.height + gap
+            if y > H:
+                break
+    fade = Image.linear_gradient('L').rotate(-90).resize((160, H))  # opaque on the left
+    im.paste(Image.new('RGB', (160, H), bg), (x0, 0), fade)
+    d = ImageDraw.Draw(im)
+    # Left: the title (the name in white, "Banners" in the page's green to blue), the counts and the medal
+    title = font('NotoSans-Bold.ttf', 84)
+    d.text((64, 110), "nikp3h's", font=title, fill=(228, 236, 233))
+    tw, th = d.textbbox((0, 0), 'Banners', font=title)[2:]
+    grad = Image.linear_gradient('L').rotate(90).resize((tw, th + 20))
+    green, blue = Image.new('RGB', grad.size, (58, 209, 154)), Image.new('RGB', grad.size, (90, 162, 255))
+    mask = Image.new('L', grad.size, 0)
+    ImageDraw.Draw(mask).text((0, 0), 'Banners', font=title, fill=255)
+    im.paste(Image.composite(blue, green, grad), (64, 215), mask)
+    for k, line in enumerate(('Ingress mission banners matched with', 'Bannergress, on a map of the start points')):
+        d.text((66, 345 + k * 40), line, font=font('NotoSans-Regular.ttf', 30), fill=(143, 161, 155))
+    y, x = 470, 66
+    for n, label in ((count, 'BANNERS'), (missions, 'MISSIONS')):
+        d.text((x, y), f'{n:,}', font=font('NotoSans-Bold.ttf', 52), fill=(228, 236, 233))
+        x += d.textlength(f'{n:,}', font=font('NotoSans-Bold.ttf', 52)) + 12
+        d.text((x, y + 24), label, font=font('NotoSansMono-Regular.ttf', 24), fill=(143, 161, 155))
+        x += d.textlength(label, font=font('NotoSansMono-Regular.ttf', 24)) + 40
+    tier = next((t for n, t in SPECOPS if missions >= n), None)
+    if tier:
+        medal = Image.open(SITE / 'medals' / f'specops-{tier}.webp').convert('RGBA').resize((96, 96), Image.LANCZOS)
+        im.paste(medal, (round(x) - 16, y - 14), medal)
+        onyx = missions // SPECOPS[0][0]
+        if onyx > 1:
+            d.text((x + 84, y + 12), f'X {onyx}', font=font('NotoSans-Bold.ttf', 40), fill=(227, 165, 59))
+    im.save(PREVIEW, quality=85, optimize=True, progressive=True)
+
+    desc = (f'{count} Ingress mission banners and {missions:,} missions of agent nikp3h: the medals, '
+            'a map of the start points and the matching Bannergress banners.')
+    version = hashlib.sha1(PREVIEW.read_bytes()).hexdigest()[:8]
+    page = SITE / 'index.html'
+    html = page.read_text(encoding='utf-8')
+    new = re.sub(r'(<meta (?:name|property)="(?:description|og:description|twitter:description)" content=")[^"]*',
+                 lambda m: m.group(1) + desc, html)
+    new = re.sub(r'(<meta (?:property|name)="(?:og:image|twitter:image)" content=")[^"]*',
+                 lambda m: m.group(1) + f'{PAGE}{PREVIEW.name}?v={version}', new)
+    if new != html:
+        page.write_text(new, encoding='utf-8')
+    print(f'{PREVIEW.relative_to(ROOT)}: {count} banners, {missions:,} missions')
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     p.add_argument('--screenshot', help='the mission medal screenshot (PNG, 1080 px wide)')
@@ -221,6 +296,7 @@ def main():
     ids = {b.get('id') for b in banners}
     both = sum(1 for d in done['banners'] if d['id'] in ids)
     print(f'{OUT.relative_to(ROOT)}: {len(done["banners"])} done ({both} with medals), {len(notes)} notes')
+    write_preview(banners)
 
 
 if __name__ == '__main__':
