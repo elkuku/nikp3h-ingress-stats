@@ -3525,5 +3525,14 @@ window.BANNERS=[
   "event": null,
   "warning": null,
   "offline": null
+ },
+ {
+  "i": 156,
+  "rows": "413",
+  "name": "Single missions",
+  "count": 6,
+  "img": "img/m156.jpg",
+  "status": "none",
+  "single": true
  }
 ];
