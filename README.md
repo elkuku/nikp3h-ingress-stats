@@ -1,7 +1,7 @@
 # nikp3h Ingress Stats
 
 Static pages about the Ingress agent nikp3h, published with GitHub Pages:
-<https://elkuku.github.io/nikp3h-ingress-stats/mission-banners/>
+<https://elkuku.github.io/nikp3h-ingress-stats/>
 
 ## Mission Banner Finder
 
