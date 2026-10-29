@@ -14,7 +14,7 @@ table shows it in the other two.
 - The titles were read from the mission medals in the Ingress app.
 - Each title was searched on Bannergress, and the match was checked by comparing the banner picture
   with the agent's medals.
-- 8 banners are not on Bannergress; they are listed with the title from Ingress.
+- 5 banners are not on Bannergress; they are listed with the title from Ingress.
 
 | File | Content |
 |------|---------|
